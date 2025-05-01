@@ -14,10 +14,42 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Define plugin constants
+define('ETSY_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('ETSY_PLUGIN_URL', plugin_dir_url(__FILE__));
+
 /**
- * Add shortcode for displaying "Hello world!"
+ * Initialize the plugin
  */
-function etsy_inventory_shortcode($atts) {
-    return '<div class="etsy-inventory-container">Hello world!</div>';
+function etsy_plugin_init() {
+    // Include admin files if in admin area
+    if (is_admin()) {
+        require_once ETSY_PLUGIN_DIR . 'admin/settings-page.php';
+    }
 }
-add_shortcode('etsy_inventory', 'etsy_inventory_shortcode'); 
+add_action('init', 'etsy_plugin_init');
+
+/**
+ * Register admin menu
+ */
+function etsy_register_admin_menu() {
+    add_menu_page(
+        'Etsy Shop',
+        'Etsy Shop',
+        'manage_options',
+        'etsy-shop',
+        'etsy_admin_page',
+        'dashicons-store',
+        30
+    );
+    
+    add_submenu_page(
+        'etsy-shop',
+        'Connect Shop',
+        'Connect Shop',
+        'manage_options',
+        'etsy-shop-connect',
+        'etsy_connect_shop_page'
+    );
+}
+add_action('admin_menu', 'etsy_register_admin_menu'); 
