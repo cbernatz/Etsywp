@@ -3,4 +3,4 @@ description:
 globs: 
 alwaysApply: true
 ---
-Stick to Etsy color ways. #F1641D, #333, whites, light greys.
+Stick to Etsy color ways. #F1641D, #333, whites, light greys. Avoid sharp edges. Avoid blues, greens, reds, purples - anything that isn't shades of orange, tan, or greys. Even for error and success states
