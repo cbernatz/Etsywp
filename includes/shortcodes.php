@@ -150,7 +150,7 @@ function etsy_best_sellers_shortcode($atts) {
     // Parse attributes
     $atts = shortcode_atts(
         array(
-            'limit' => 12, // Increased from 6 to 12 items by default
+            'limit' => 30, // Changed from 12 to 30 items by default
             'columns' => 6, // Default number of columns
             'fullwidth' => 'yes', // Default to full width
         ),
@@ -161,8 +161,22 @@ function etsy_best_sellers_shortcode($atts) {
     // Start output buffer
     ob_start();
     
-    // Get the listings
-    $listings = etsy_get_listings($atts['limit']);
+    // Get the listings sorted by favorites
+    $extra_args = array(
+        'meta_key' => 'etsy_num_favorers',
+        'orderby' => 'meta_value_num',
+        'order' => 'DESC',
+        'meta_query' => array(
+            array(
+                'key' => 'etsy_num_favorers',
+                'value' => '0',
+                'compare' => '>',
+                'type' => 'NUMERIC'
+            )
+        )
+    );
+    
+    $listings = etsy_get_listings($atts['limit'], 0, $extra_args);
     
     if (!empty($listings)) {
         // Start grid shortcode - pass the columns parameter from best_sellers
