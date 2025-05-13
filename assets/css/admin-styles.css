@@ -147,6 +147,19 @@
     background: #EFEFEF;
 }
 
+/* Disconnect button style */
+#etsy-disconnect-shop {
+    background: #FFFFFF;
+    border: 1px solid #F1641D;
+    color: #F1641D;
+}
+
+#etsy-disconnect-shop:hover {
+    background: #FFF8F5;
+    border-color: #E35A1B;
+    color: #E35A1B;
+}
+
 /* Spinner styles */
 .etsy-button .spinner {
     float: none !important;

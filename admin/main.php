@@ -80,7 +80,7 @@ function etsy_admin_page() {
                 $shop_data = etsy_get_shop_data();
                 
                 // Fetch shop listings
-                $listings_result = $api_client->get_shop_listings_with_details();
+                $listings_result = $api_client->get_shop_listings_with_details(100);
                 if (!is_wp_error($listings_result)) {
                     $listings = $listings_result;
                 }
@@ -90,12 +90,6 @@ function etsy_admin_page() {
         }
     }
     
-    // Process listing refresh if requested
-    if ($is_connected && isset($_GET['refresh_listings']) && $_GET['refresh_listings'] == '1') {
-        require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
-        $api_client = new Etsy_API_Client();
-        $api_client->get_shop_listings_with_details();
-    }
     ?>
     <div class="wrap">
         <h1>Etsy</h1>
@@ -134,8 +128,7 @@ function etsy_admin_page() {
                     ?>
                     
                     <div class="etsy-admin-actions">
-                        <button type="button" class="button etsy-secondary-button" id="etsy-update-connection">Update Connection</button>
-                        <button type="button" class="button button-primary etsy-button" id="etsy-refresh-listings">Refresh</button>
+                        <button type="button" class="button button-primary etsy-button" id="etsy-disconnect-shop">Disconnect Shop</button>
                     </div>
                 </div>
                 
@@ -233,9 +226,6 @@ function etsy_admin_page() {
                         </table>
                         <p class="submit">
                             <input type="submit" name="etsy_connect_submit" class="button button-primary etsy-button" value="Connect Shop">
-                            <?php if ($is_connected): ?>
-                                <button type="button" class="button" id="etsy-cancel-update">Cancel</button>
-                            <?php endif; ?>
                         </p>
                     </form>
                 </div>
@@ -244,38 +234,32 @@ function etsy_admin_page() {
         
         <script type="text/javascript">
             jQuery(document).ready(function($) {
-                // Toggle connection form
-                $('#etsy-update-connection').on('click', function() {
-                    $('#etsy-connect-form').show();
-                });
-                
-                $('#etsy-cancel-update').on('click', function(e) {
-                    e.preventDefault();
-                    $('#etsy-connect-form').hide();
-                });
-                
-                // Handle refresh listings button click
-                $('#etsy-refresh-listings').on('click', function() {
-                    var $button = $(this);
-                    $button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin-right:5px;"></span> Refreshing...');
-                    $.ajax({
-                        url: ajaxurl,
-                        type: 'POST',
-                        data: {
-                            action: 'etsy_refresh_listings',
-                            security: '<?php echo wp_create_nonce('etsy_refresh_listings_nonce'); ?>'
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                location.reload();
-                            } else {
-                                $button.prop('disabled', false).text('Refresh');
+                // Handle disconnect button click
+                $('#etsy-disconnect-shop').on('click', function() {
+                    if (confirm('Are you sure you want to disconnect your Etsy shop? This will remove all shop data and listings.')) {
+                        var $button = $(this);
+                        $button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin-right:5px;"></span> Disconnecting...');
+                        $.ajax({
+                            url: ajaxurl,
+                            type: 'POST',
+                            data: {
+                                action: 'etsy_disconnect_shop',
+                                security: '<?php echo wp_create_nonce('etsy_disconnect_shop_nonce'); ?>'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    location.reload();
+                                } else {
+                                    $button.prop('disabled', false).text('Disconnect Shop');
+                                    alert('Failed to disconnect shop. Please try again.');
+                                }
+                            },
+                            error: function() {
+                                $button.prop('disabled', false).text('Disconnect Shop');
+                                alert('Failed to disconnect shop. Please try again.');
                             }
-                        },
-                        error: function() {
-                            $button.prop('disabled', false).text('Refresh');
-                        }
-                    });
+                        });
+                    }
                 });
             });
         </script>
@@ -297,11 +281,11 @@ function etsy_admin_styles() {
 add_action('admin_enqueue_scripts', 'etsy_admin_styles');
 
 /**
- * AJAX handler for refreshing Etsy listings
+ * AJAX handler for disconnecting Etsy shop
  */
-function etsy_ajax_refresh_listings() {
+function etsy_ajax_disconnect_shop() {
     // Verify nonce
-    if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'etsy_refresh_listings_nonce')) {
+    if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'etsy_disconnect_shop_nonce')) {
         wp_send_json_error();
     }
     
@@ -310,25 +294,34 @@ function etsy_ajax_refresh_listings() {
         wp_send_json_error();
     }
     
-    // Get shop data
-    $shop_data = etsy_get_shop_data();
+    // Delete shop data from options
+    delete_option('etsy_shop_url');
+    delete_option('etsy_api_key');
+    delete_option('etsy_shop_id');
+    delete_option('etsy_shop_data');
+    delete_option('etsy_shop_listings');
     
-    // Check if shop is connected
-    if (empty($shop_data) || empty($shop_data['shop_url']) || empty($shop_data['api_key'])) {
-        wp_send_json_error();
+    // Delete shop and listings CPTs
+    $shop_posts = get_posts(array(
+        'post_type' => 'etsy_shop',
+        'posts_per_page' => -1,
+        'post_status' => 'any',
+    ));
+    
+    foreach ($shop_posts as $post) {
+        wp_delete_post($post->ID, true);
     }
     
-    // Include API client
-    require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
-    $api_client = new Etsy_API_Client();
+    $listing_posts = get_posts(array(
+        'post_type' => 'etsy_listing',
+        'posts_per_page' => -1,
+        'post_status' => 'any',
+    ));
     
-    // Refresh listings
-    $result = $api_client->get_shop_listings_with_details();
-    
-    if (is_wp_error($result)) {
-        wp_send_json_error();
-    } else {
-        wp_send_json_success();
+    foreach ($listing_posts as $post) {
+        wp_delete_post($post->ID, true);
     }
+    
+    wp_send_json_success();
 }
-add_action('wp_ajax_etsy_refresh_listings', 'etsy_ajax_refresh_listings');
+add_action('wp_ajax_etsy_disconnect_shop', 'etsy_ajax_disconnect_shop');
