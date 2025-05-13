@@ -19,28 +19,16 @@ function etsy_admin_page()
     // Get shop data from CPT
     $shop_data = etsy_get_shop_data();
 
-    // If no shop data in CPT, try options (backward compatibility)
-    if (!$shop_data) {
-        $shop_data = get_option('etsy_shop_data', array());
-        $shop_data['shop_url'] = get_option('etsy_shop_url', '');
-        $shop_data['api_key'] = get_option('etsy_api_key', '');
-    }
-
     // Get listings from CPT
     $listings = etsy_get_listings();
 
-    // If no listings in CPT, try options (backward compatibility)
-    if (empty($listings)) {
-        $listings = get_option('etsy_shop_listings', array());
-    }
-
-    // Initialize variables from shop data or options
+    // Initialize variables from shop data
     if ($shop_data) {
         $shop_url = $shop_data['shop_url'];
         $api_key = $shop_data['api_key'];
     } else {
-        $shop_url = get_option('etsy_shop_url', '');
-        $api_key = get_option('etsy_api_key', '');
+        $shop_url = '';
+        $api_key = '';
     }
 
     $is_connected = !empty($shop_data) && !empty($shop_data['shop_url']) && !empty($shop_data['api_key']);
@@ -60,9 +48,18 @@ function etsy_admin_page()
         } elseif (strlen($api_key) < 24) { // Simple validation for API key length
             $error_message = 'Please enter a valid Etsy API key.';
         } else {
-            // Save the values first (for backward compatibility)
-            update_option('etsy_shop_url', $shop_url);
-            update_option('etsy_api_key', $api_key);
+            // Create initial shop data to use for the API client
+            $initial_shop_data = array(
+                'shop_url' => $shop_url,
+                'api_key' => $api_key,
+                'shop_id' => '',
+                'shop_name' => '',
+                'create_date' => '',
+                'icon_url_fullxfull' => ''
+            );
+            
+            // Save initial shop data to CPT
+            etsy_save_shop_data($initial_shop_data);
 
             // Now try to fetch shop data
             require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
@@ -73,9 +70,17 @@ function etsy_admin_page()
 
             if (is_wp_error($shop_result)) {
                 $error_message = 'Error connecting to Etsy: ' . $shop_result->get_error_message();
-                // Delete saved values on error
-                delete_option('etsy_shop_url');
-                delete_option('etsy_api_key');
+                
+                // Delete the shop post on error
+                $shop = get_posts(array(
+                    'post_type' => 'etsy_shop',
+                    'posts_per_page' => 1,
+                    'post_status' => 'publish',
+                ));
+                
+                if (!empty($shop)) {
+                    wp_delete_post($shop[0]->ID, true);
+                }
             } else {
                 // Get the saved shop data
                 $shop_data = etsy_get_shop_data();
@@ -329,13 +334,6 @@ function etsy_ajax_disconnect_shop() {
         wp_send_json_error();
     }
     
-    // Delete shop data from options
-    delete_option('etsy_shop_url');
-    delete_option('etsy_api_key');
-    delete_option('etsy_shop_id');
-    delete_option('etsy_shop_data');
-    delete_option('etsy_shop_listings');
-    
     // Delete shop and listings CPTs
     $shop_posts = get_posts(array(
         'post_type' => 'etsy_shop',
@@ -357,26 +355,7 @@ function etsy_ajax_disconnect_shop() {
         wp_delete_post($post->ID, true);
     }
 
-    // Get shop data
-    $shop_data = etsy_get_shop_data();
-
-    // Check if shop is connected
-    if (empty($shop_data) || empty($shop_data['shop_url']) || empty($shop_data['api_key'])) {
-        wp_send_json_error();
-    }
-
-    // Include API client
-    require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
-    $api_client = new Etsy_API_Client();
-
-    // Refresh listings
-    $result = $api_client->get_shop_listings_with_details();
-
-    if (is_wp_error($result)) {
-        wp_send_json_error();
-    } else {
-        wp_send_json_success();
-    }
+    wp_send_json_success();
 }
 add_action('wp_ajax_etsy_disconnect_shop', 'etsy_ajax_disconnect_shop');
 

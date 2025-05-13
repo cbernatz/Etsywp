@@ -66,7 +66,7 @@ function etsy_save_shop_data($shop_data) {
     ));
 
     $post_data = array(
-        'post_title' => $shop_data['shop_name'],
+        'post_title' => !empty($shop_data['shop_name']) ? $shop_data['shop_name'] : 'Etsy Shop',
         'post_status' => 'publish',
         'post_type' => 'etsy_shop',
     );
@@ -84,12 +84,29 @@ function etsy_save_shop_data($shop_data) {
     }
 
     // Save shop meta data
-    update_post_meta($shop_id, 'etsy_shop_id', $shop_data['shop_id']);
-    update_post_meta($shop_id, 'etsy_shop_name', $shop_data['shop_name']);
-    update_post_meta($shop_id, 'etsy_shop_url', get_option('etsy_shop_url'));
-    update_post_meta($shop_id, 'etsy_api_key', get_option('etsy_api_key'));
-    update_post_meta($shop_id, 'etsy_create_date', $shop_data['create_date']);
-    update_post_meta($shop_id, 'etsy_icon_url', $shop_data['icon_url_fullxfull']);
+    if (isset($shop_data['shop_id'])) {
+        update_post_meta($shop_id, 'etsy_shop_id', $shop_data['shop_id']);
+    }
+    
+    if (isset($shop_data['shop_name'])) {
+        update_post_meta($shop_id, 'etsy_shop_name', $shop_data['shop_name']);
+    }
+    
+    if (isset($shop_data['shop_url'])) {
+        update_post_meta($shop_id, 'etsy_shop_url', $shop_data['shop_url']);
+    }
+    
+    if (isset($shop_data['api_key'])) {
+        update_post_meta($shop_id, 'etsy_api_key', $shop_data['api_key']);
+    }
+    
+    if (isset($shop_data['create_date'])) {
+        update_post_meta($shop_id, 'etsy_create_date', $shop_data['create_date']);
+    }
+    
+    if (isset($shop_data['icon_url_fullxfull'])) {
+        update_post_meta($shop_id, 'etsy_icon_url', $shop_data['icon_url_fullxfull']);
+    }
 
     return $shop_id;
 }

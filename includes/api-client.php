@@ -37,18 +37,13 @@ class Etsy_API_Client {
      * Constructor
      */
     public function __construct() {
-        // Get API credentials from stored shop data or fallback to options
+        // Get API credentials from stored shop data
         $shop_data = etsy_get_shop_data();
         
         if ($shop_data) {
             $this->api_key = $shop_data['api_key'];
             $this->shop_id = $shop_data['shop_id'];
             $this->shop_name = $this->extract_shop_name($shop_data['shop_url']);
-        } else {
-            // Fallback to options (for backward compatibility)
-            $this->api_key = get_option('etsy_api_key', '');
-            $this->shop_id = get_option('etsy_shop_id', '');
-            $this->shop_name = $this->extract_shop_name(get_option('etsy_shop_url', ''));
         }
     }
     
@@ -103,7 +98,6 @@ class Etsy_API_Client {
         
         // Save the shop ID
         $this->shop_id = $response['results'][0]['shop_id'];
-        update_option('etsy_shop_id', $this->shop_id);
         
         return $response['results'][0];
     }
@@ -138,9 +132,8 @@ class Etsy_API_Client {
             'icon_url_fullxfull' => isset($response['icon_url_fullxfull']) ? $response['icon_url_fullxfull'] : ''
         );
         
-        // Save to CPT and also to options for backward compatibility
+        // Save to CPT
         etsy_save_shop_data($shop_data);
-        update_option('etsy_shop_data', $shop_data);
         
         return $response;
     }
@@ -232,9 +225,6 @@ class Etsy_API_Client {
                 etsy_save_listing($listing_details);
             }
         }
-        
-        // Save listings to options for backward compatibility
-        update_option('etsy_shop_listings', $detailed_listings);
         
         return $detailed_listings;
     }
