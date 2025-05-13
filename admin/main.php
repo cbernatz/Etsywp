@@ -378,8 +378,26 @@ function etsy_create_listing_page()
     require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
     $api_client = new Etsy_API_Client();
     $listing = $api_client->get_listing_details($_POST['listing_id']);
-    $content = "<figure class='wp-block-image'><img alt='' src='{$listing['images'][0]['url_fullxfull']}'/></figure>{$listing['description']}";
-    var_dump($content);
+    $price = $listing['price']['amount'] / $listing['price']['divisor'];
+    $content = <<<EOD
+<!-- wp:image {"className":"wp-block-image"} -->
+<figure class="wp-block-image"><img src="{$listing['images'][0]['url_fullxfull']}" alt=""/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>{$price} {$listing['price']['currency_code']}</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>{$listing['description']}</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://www.etsy.com/offsite-checkout/cart/add-listing?listing_id={$listing['listing_id']}">Buy on Etsy</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+EOD;
 
     $args = array(
         'post_title' => $listing['title'],
