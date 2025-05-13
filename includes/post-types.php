@@ -156,6 +156,11 @@ function etsy_save_listing($listing) {
     update_post_meta($listing_id, 'etsy_state', $listing['state']);
     update_post_meta($listing_id, 'etsy_url', $listing['url']);
     
+    // Save number of favorites if available
+    if (isset($listing['num_favorers'])) {
+        update_post_meta($listing_id, 'etsy_num_favorers', $listing['num_favorers']);
+    }
+    
     // Save price
     if (isset($listing['price'])) {
         $price_amount = $listing['price']['amount'] / $listing['price']['divisor'];
@@ -300,6 +305,7 @@ function etsy_get_listings($limit = -1, $offset = 0) {
             'description' => $post->post_content,
             'state' => get_post_meta($listing_id, 'etsy_state', true),
             'url' => get_post_meta($listing_id, 'etsy_url', true),
+            'num_favorers' => get_post_meta($listing_id, 'etsy_num_favorers', true),
             'price' => array(
                 'amount' => get_post_meta($listing_id, 'etsy_price', true) * 100, // Convert to cents
                 'divisor' => 100,
