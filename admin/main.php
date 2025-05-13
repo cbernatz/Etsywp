@@ -10,29 +10,30 @@ require_once ETSY_PLUGIN_DIR . 'includes/post-types.php';
 /**
  * Main admin page for Etsy plugin
  */
-function etsy_admin_page() {
+function etsy_admin_page()
+{
     // Check if we're processing a connection form submission
     $form_submitted = isset($_POST['etsy_connect_submit']);
     $error_message = '';
-    
+
     // Get shop data from CPT
     $shop_data = etsy_get_shop_data();
-    
+
     // If no shop data in CPT, try options (backward compatibility)
     if (!$shop_data) {
         $shop_data = get_option('etsy_shop_data', array());
         $shop_data['shop_url'] = get_option('etsy_shop_url', '');
         $shop_data['api_key'] = get_option('etsy_api_key', '');
     }
-    
+
     // Get listings from CPT
     $listings = etsy_get_listings();
-    
+
     // If no listings in CPT, try options (backward compatibility)
     if (empty($listings)) {
         $listings = get_option('etsy_shop_listings', array());
     }
-    
+
     // Initialize variables from shop data or options
     if ($shop_data) {
         $shop_url = $shop_data['shop_url'];
@@ -41,14 +42,14 @@ function etsy_admin_page() {
         $shop_url = get_option('etsy_shop_url', '');
         $api_key = get_option('etsy_api_key', '');
     }
-    
+
     $is_connected = !empty($shop_data) && !empty($shop_data['shop_url']) && !empty($shop_data['api_key']);
-    
+
     // Process connection form submission
     if ($form_submitted) {
         $shop_url = isset($_POST['etsy_shop_url']) ? sanitize_text_field($_POST['etsy_shop_url']) : '';
         $api_key = isset($_POST['etsy_api_key']) ? sanitize_text_field($_POST['etsy_api_key']) : '';
-        
+
         // Validate the inputs
         if (empty($shop_url)) {
             $error_message = 'Please enter your Etsy shop URL.';
@@ -62,14 +63,14 @@ function etsy_admin_page() {
             // Save the values first (for backward compatibility)
             update_option('etsy_shop_url', $shop_url);
             update_option('etsy_api_key', $api_key);
-            
+
             // Now try to fetch shop data
             require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
             $api_client = new Etsy_API_Client();
-            
+
             // Fetch shop details
             $shop_result = $api_client->get_shop_details();
-            
+
             if (is_wp_error($shop_result)) {
                 $error_message = 'Error connecting to Etsy: ' . $shop_result->get_error_message();
                 // Delete saved values on error
@@ -78,35 +79,35 @@ function etsy_admin_page() {
             } else {
                 // Get the saved shop data
                 $shop_data = etsy_get_shop_data();
-                
+
                 // Fetch shop listings
                 $listings_result = $api_client->get_shop_listings_with_details(100);
                 if (!is_wp_error($listings_result)) {
                     $listings = $listings_result;
                 }
-                
+
                 $is_connected = true;
             }
         }
     }
-    
+
     ?>
     <div class="wrap">
         <h1>Etsy</h1>
-        
+
         <div class="etsy-admin-container">
-            <?php if ($is_connected): ?>
+            <?php if ($is_connected) : ?>
                 <!-- Connected Shop Dashboard -->
-                <div class="etsy-admin-card">                    
+                <div class="etsy-admin-card">
                     <?php
                     // Display shop icon if available
                     if (!empty($shop_data['icon_url_fullxfull'])) {
                         echo '<div class="etsy-shop-icon"><img src="' . esc_url($shop_data['icon_url_fullxfull']) . '" alt="Shop Icon"></div>';
                     }
-                    
+
                     echo '<p><strong>Shop Name:</strong> ' . esc_html($shop_data['shop_name']) . '</p>';
                     echo '<p><strong>Shop URL:</strong> ' . esc_url($shop_data['shop_url']) . '</p>';
-                    
+
                     // Format and display create date
                     $create_date = isset($shop_data['create_date']) ? $shop_data['create_date'] : '';
                     if (!empty($create_date)) {
@@ -126,18 +127,18 @@ function etsy_admin_page() {
                         }
                     }
                     ?>
-                    
+
                     <div class="etsy-admin-actions">
                         <button type="button" class="button button-primary etsy-button" id="etsy-disconnect-shop">Disconnect Shop</button>
                     </div>
                 </div>
-                
-                <?php if (!empty($listings)): ?>
+
+                <?php if (!empty($listings)) : ?>
                     <!-- Listings Display -->
                     <div class="etsy-admin-card etsy-listings-card">
                         <h2>Etsy Shop Listings</h2>
                         <p>Showing <?php echo count($listings); ?> products from your Etsy shop.</p>
-                        
+
                         <table class="widefat etsy-listings-table">
                             <thead>
                                 <tr>
@@ -149,7 +150,7 @@ function etsy_admin_page() {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($listings as $listing): ?>
+                                <?php foreach ($listings as $listing) : ?>
                                     <tr>
                                         <td class="etsy-listing-image">
                                             <?php
@@ -181,6 +182,7 @@ function etsy_admin_page() {
                                             <span class="etsy-listing-state"><?php echo esc_html(ucfirst($listing['state'])); ?></span>
                                         </td>
                                         <td>
+                                        <div target="_blank" class="button etsy-secondary-button" data-create-listing-page data-listing-id="<?php echo $listing['listing_id'] ?>">Add listing page</div>
                                             <a href="<?php echo esc_url($listing['url']); ?>" target="_blank" class="button etsy-secondary-button">View on Etsy</a>
                                         </td>
                                     </tr>
@@ -190,35 +192,32 @@ function etsy_admin_page() {
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
-            
+
             <!-- Connection Form (hidden when connected) -->
             <div id="etsy-connect-form" class="etsy-connect-container" <?php echo $is_connected ? 'style="display:none;"' : ''; ?>>
                 <div class="etsy-connect-card">
                     <h2>Connect Your Etsy Shop</h2>
                     <p>Please enter your Etsy shop URL and API key to connect your shop.</p>
-                    
-                    <?php if (!empty($error_message)): ?>
+
+                    <?php if (!empty($error_message)) : ?>
                         <div class="notice notice-error">
                             <p><?php echo esc_html($error_message); ?></p>
                         </div>
                     <?php endif; ?>
-                    
+
                     <form method="post" action="">
                         <table class="form-table">
                             <tr>
                                 <th scope="row"><label for="etsy_shop_url">Etsy Shop URL</label></th>
                                 <td>
-                                    <input type="text" name="etsy_shop_url" id="etsy_shop_url" class="regular-text" 
-                                           value="<?php echo esc_attr($shop_url); ?>" 
-                                           placeholder="https://www.etsy.com/shop/YourShopName" />
+                                    <input type="text" name="etsy_shop_url" id="etsy_shop_url" class="regular-text" value="<?php echo esc_attr($shop_url); ?>" placeholder="https://www.etsy.com/shop/YourShopName" />
                                     <p class="description">Example: https://www.etsy.com/shop/BrooklynGreetingCo</p>
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row"><label for="etsy_api_key">Etsy API Key</label></th>
                                 <td>
-                                    <input type="password" name="etsy_api_key" id="etsy_api_key" class="regular-text" 
-                                           value="<?php echo esc_attr($api_key); ?>" />
+                                    <input type="password" name="etsy_api_key" id="etsy_api_key" class="regular-text" value="<?php echo esc_attr($api_key); ?>" />
                                     <p class="description">Enter your Etsy API key from your Etsy developer account.</p>
                                     <p class="description"><a href="https://www.etsy.com/developers/register" target="_blank">Don't have an API key? Register as a developer.</a></p>
                                 </td>
@@ -226,12 +225,15 @@ function etsy_admin_page() {
                         </table>
                         <p class="submit">
                             <input type="submit" name="etsy_connect_submit" class="button button-primary etsy-button" value="Connect Shop">
+                            <?php if ($is_connected) : ?>
+                                <button type="button" class="button" id="etsy-cancel-update">Cancel</button>
+                            <?php endif; ?>
                         </p>
                     </form>
                 </div>
             </div>
         </div>
-        
+
         <script type="text/javascript">
             jQuery(document).ready(function($) {
                 // Handle disconnect button click
@@ -257,20 +259,53 @@ function etsy_admin_page() {
                             error: function() {
                                 $button.prop('disabled', false).text('Disconnect Shop');
                                 alert('Failed to disconnect shop. Please try again.');
+                          }
+                    })
+                }})
+                // Toggle connection form
+                $('#etsy-update-connection').on('click', function() {
+                    $('#etsy-connect-form').show();
+                });
+
+                $('#etsy-cancel-update').on('click', function(e) {
+                    e.preventDefault();
+                    $('#etsy-connect-form').hide();
+                });
+
+                $('[data-create-listing-page]').on('click', function() {
+                    var $button = $(this);
+                    $button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin-right:5px;"></span> Creating listing page...');
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'etsy_create_listing_page',
+                            security: '<?php echo wp_create_nonce('etsy_refresh_listings_nonce'); ?>',
+                            listing_id: $button.attr('data-listing-id'), 
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                $button.prop('disabled', false).text('Added page');
                             }
-                        });
-                    }
+                        },
+                        error: function() {
+                            $button.prop('disabled', false).text('Failed to add page - retry');
+                        }
+                    });
                 });
             });
         </script>
     </div>
-    <?php
+<?php
 }
 
 /**
  * Register admin styles
  */
-function etsy_admin_styles() {
+function etsy_admin_styles()
+{
     wp_enqueue_style(
         'etsy-admin-styles',
         ETSY_PLUGIN_URL . 'assets/css/admin-styles.css',
@@ -288,7 +323,7 @@ function etsy_ajax_disconnect_shop() {
     if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'etsy_disconnect_shop_nonce')) {
         wp_send_json_error();
     }
-    
+
     // Check user permissions
     if (!current_user_can('manage_options')) {
         wp_send_json_error();
@@ -321,7 +356,66 @@ function etsy_ajax_disconnect_shop() {
     foreach ($listing_posts as $post) {
         wp_delete_post($post->ID, true);
     }
-    
-    wp_send_json_success();
+
+    // Get shop data
+    $shop_data = etsy_get_shop_data();
+
+    // Check if shop is connected
+    if (empty($shop_data) || empty($shop_data['shop_url']) || empty($shop_data['api_key'])) {
+        wp_send_json_error();
+    }
+
+    // Include API client
+    require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
+    $api_client = new Etsy_API_Client();
+
+    // Refresh listings
+    $result = $api_client->get_shop_listings_with_details();
+
+    if (is_wp_error($result)) {
+        wp_send_json_error();
+    } else {
+        wp_send_json_success();
+    }
 }
 add_action('wp_ajax_etsy_disconnect_shop', 'etsy_ajax_disconnect_shop');
+
+
+/**
+ * AJAX handler for upserting the Etsy listign page
+ */
+function etsy_create_listing_page()
+{
+    // Verify nonce
+    if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'etsy_refresh_listings_nonce')) {
+        wp_send_json_error();
+    }
+
+    // Check user permissions
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error();
+    }
+
+    require_once ETSY_PLUGIN_DIR . 'includes/api-client.php';
+    $api_client = new Etsy_API_Client();
+    $listing = $api_client->get_listing_details($_POST['listing_id']);
+    $content = "<figure class='wp-block-image'><img alt='' src='{$listing['images'][0]['url_fullxfull']}'/></figure>{$listing['description']}";
+    var_dump($content);
+
+    $args = array(
+        'post_title' => $listing['title'],
+        'post_status' => 'publish',
+        'post_type' => 'page',
+        'post_content' => $content,
+    );
+
+    $post_id = wp_insert_post($args);
+
+    if(!is_wp_error($post_id)){
+      //the post is valid
+    }else{
+      //there was an error in the post insertion, 
+      echo $post_id->get_error_message();
+    }
+}
+add_action('wp_ajax_etsy_create_listing_page', 'etsy_create_listing_page');
