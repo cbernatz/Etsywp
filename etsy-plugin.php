@@ -47,4 +47,24 @@ function etsy_register_admin_menu() {
         30
     );
 }
-add_action('admin_menu', 'etsy_register_admin_menu'); 
+add_action('admin_menu', 'etsy_register_admin_menu');
+
+/**
+ * Create 'Best Sellers' page on plugin activation
+ */
+function etsy_create_best_sellers_page() {
+    $page_title = 'Best Sellers';
+    $page_content = '[etsywp_best_sellers]'; // Placeholder for shortcode or content
+    $page_check = get_page_by_title($page_title);
+
+    if (!isset($page_check->ID)) {
+        $new_page = array(
+            'post_title'    => $page_title,
+            'post_content'  => $page_content,
+            'post_status'   => 'publish',
+            'post_type'     => 'page',
+        );
+        wp_insert_post($new_page);
+    }
+}
+register_activation_hook(__FILE__, 'etsy_create_best_sellers_page'); 
