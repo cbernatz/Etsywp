@@ -281,15 +281,21 @@ function etsy_get_shop_data() {
  * 
  * @param int $limit Number of listings to get
  * @param int $offset Offset to start from
+ * @param array $extra_args Additional arguments to pass to get_posts
  * @return array Array of listings
  */
-function etsy_get_listings($limit = -1, $offset = 0) {
+function etsy_get_listings($limit = -1, $offset = 0, $extra_args = array()) {
     $args = array(
         'post_type' => 'etsy_listing',
         'posts_per_page' => $limit,
         'offset' => $offset,
         'post_status' => 'publish',
     );
+    
+    // Merge any additional arguments
+    if (!empty($extra_args)) {
+        $args = array_merge($args, $extra_args);
+    }
 
     $posts = get_posts($args);
     $listings = array();
