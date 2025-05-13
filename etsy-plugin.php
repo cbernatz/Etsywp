@@ -25,12 +25,29 @@ function etsy_plugin_init() {
     // Include post types
     require_once ETSY_PLUGIN_DIR . 'includes/post-types.php';
     
+    // Include shortcodes
+    require_once ETSY_PLUGIN_DIR . 'includes/shortcodes.php';
+    
     // Include admin files if in admin area
     if (is_admin()) {
         require_once ETSY_PLUGIN_DIR . 'admin/main.php';
     }
 }
 add_action('init', 'etsy_plugin_init');
+
+/**
+ * Register styles and scripts
+ */
+function etsy_enqueue_scripts() {
+    // Enqueue frontend styles
+    wp_enqueue_style(
+        'etsywp-frontend-styles',
+        ETSY_PLUGIN_URL . 'assets/css/frontend-styles.css',
+        array(),
+        filemtime(ETSY_PLUGIN_DIR . 'assets/css/frontend-styles.css')
+    );
+}
+add_action('wp_enqueue_scripts', 'etsy_enqueue_scripts');
 
 /**
  * Register admin menu
