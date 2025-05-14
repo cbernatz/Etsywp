@@ -84,4 +84,21 @@ function etsy_create_best_sellers_page() {
         wp_insert_post($new_page);
     }
 }
+
+functions etsy_create_shop_all_page() {
+    $page_title = 'Shop All';
+    $page_content = '[etsywp_shop_all]'; // Placeholder for shortcode or content
+    $page_check = get_page_by_title($page_title);
+    
+    if (!isset($page_check->ID)) {
+        $new_page = array(
+            'post_title'    => $page_title,
+            'post_content'  => $page_content,
+            'post_status'   => 'publish',
+            'post_type'     => 'page',
+        );
+        wp_insert_post($new_page);
+    }
+}
 register_activation_hook(__FILE__, 'etsy_create_best_sellers_page'); 
+register_activation_hook(__FILE__, 'etsy_create_shop_all_page');
