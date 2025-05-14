@@ -6,13 +6,9 @@
 /* Grid Layout */
 .etsywp-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
     width: 100%;
-}
-
-.etsywp-grid.compact-grid {
-    gap: 10px;
 }
 
 /* Product Cards */
@@ -21,21 +17,13 @@
     border-radius: 8px;
     overflow: hidden;
     background-color: #FFF;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     text-decoration: none;
 }
 
-.etsywp-product-card.compact {
-    margin-bottom: 10px;
-}
-
 .etsywp-product-image {
-    height: 180px;
+    height: 220px;
     overflow: hidden;
-}
-
-.etsywp-product-card.compact .etsywp-product-image {
-    height: 140px;
 }
 
 .etsywp-product-image img {
@@ -45,24 +33,23 @@
 }
 
 .etsywp-product-details {
-    padding: 12px;
+    padding: 16px;
 }
 
 .etsywp-product-details h3 {
-    font-size: 15px;
+    font-size: 16px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
-}
-
-.etsywp-product-card.compact .etsywp-product-details h3 {
-    font-size: 14px;
+    color: #333;
 }
 
 .etsywp-product-price {
     font-weight: bold;
-    font-size: 12px;
+    font-size: 14px;
+    margin-top: 8px;
+    color: #333;
 }
 
 .etsywp-view-button {
@@ -164,33 +151,21 @@ article .etsywp-grid-container,
     }
 }
 
-/* Responsive Grid - Adjust columns based on screen size */
-@media (max-width: 1024px) {
-    .etsywp-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 12px;
-    }
-}
-
-@media (max-width: 768px) {
-    .etsywp-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
-    }
-}
-
+/* Small screen adjustments */
 @media (max-width: 480px) {
     .etsywp-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 8px;
+        gap: 15px;
     }
 
-    .etsywp-product-card,
-    .etsywp-product-card.compact {
-        margin-bottom: 8px;
+    .etsywp-product-card {
+        margin-bottom: 15px;
     }
-    .etsywp-product-image,
-    .etsywp-product-card.compact .etsywp-product-image {
-        height: 120px;
+    
+    .etsywp-product-image {
+        height: 180px;
+    }
+    
+    .etsywp-product-details {
+        padding: 12px;
     }
 }

@@ -20,7 +20,6 @@ function etsy_listing_tile_shortcode($atts)
             'currency' => 'USD',
             'image_url' => '',
             'url' => '',
-            'compact' => 'no',  // Whether to use compact display
         ),
         $atts,
         'etsywp_listing_tile'
@@ -56,19 +55,16 @@ function etsy_listing_tile_shortcode($atts)
                 $atts['currency'] = get_post_meta($listing_id, 'etsy_currency_code', true);
             }
 
-            if (!empty($images[0]['url_fullxfull'])) {
-                $atts['image_url'] = $images[0]['url_fullxfull'];
+            if (!empty($images[0]['url_170x135'])) {
+                $atts['image_url'] = $images[0]['url_170x135'];
             }
         }
     }
 
     // Only render if we have at least a title
     if (!empty($atts['title'])) {
-        // Set CSS classes based on compact mode
+        // Set CSS classes
         $card_class = 'etsywp-product-card';
-        if ($atts['compact'] === 'yes') {
-            $card_class .= ' compact';
-        }
 ?>
         <a class="<?php echo esc_attr($card_class); ?>" href="/<?php echo $atts['listing_id'] ?>">
             <?php if (!empty($atts['image_url'])) : ?>
@@ -104,7 +100,7 @@ function etsy_listing_grid_shortcode($atts, $content = null)
     // Parse attributes
     $atts = shortcode_atts(
         array(
-            'columns' => 6, // Default number of columns
+            'columns' => 2, // Default number of columns (changed to 2)
             'fullwidth' => 'no', // Whether to use fullwidth display
         ),
         $atts,
@@ -113,11 +109,8 @@ function etsy_listing_grid_shortcode($atts, $content = null)
 
     ob_start();
 
-    // Set grid classes
+    // Set grid class
     $grid_class = 'etsywp-grid';
-    if (intval($atts['columns']) > 4) {
-        $grid_class .= ' compact-grid';
-    }
 
     // Full-width container if enabled
     if ($atts['fullwidth'] === 'yes') {
@@ -150,7 +143,7 @@ function etsy_best_sellers_shortcode($atts)
     $atts = shortcode_atts(
         array(
             'limit' => 30, // Changed from 12 to 30 items by default
-            'columns' => 6, // Default number of columns
+            'columns' => 2, // Default number of columns (changed to 2)
             'fullwidth' => 'yes', // Default to full width
         ),
         $atts,
@@ -181,12 +174,9 @@ function etsy_best_sellers_shortcode($atts)
         // Start grid shortcode - pass the columns parameter from best_sellers
         $grid_shortcode = '[etsywp_listing_grid columns="' . esc_attr($atts['columns']) . '" fullwidth="' . esc_attr($atts['fullwidth']) . '"]';
 
-        // Use compact mode if we have many columns
-        $use_compact = intval($atts['columns']) > 4 ? 'yes' : 'no';
-
         // Add tile shortcodes for each listing
         foreach ($listings as $listing) {
-            $image_url = !empty($listing['images'][0]['url_fullxfull']) ? $listing['images'][0]['url_fullxfull'] : '';
+            $image_url = !empty($listing['images'][0]['url_170x135']) ? $listing['images'][0]['url_170x135'] : '';
             $price = '';
             $currency = 'USD';
 
@@ -202,7 +192,6 @@ function etsy_best_sellers_shortcode($atts)
             $grid_shortcode .= 'price="' . esc_attr($price) . '" ';
             $grid_shortcode .= 'currency="' . esc_attr($currency) . '" ';
             $grid_shortcode .= 'image_url="' . esc_url($image_url) . '" ';
-            $grid_shortcode .= 'compact="' . $use_compact . '" ';
             $grid_shortcode .= ']';
         }
 
@@ -231,6 +220,7 @@ function etsy_shop_all_shortcode($atts)
     // Parse attributes
     $atts = shortcode_atts(
         array(
+            'columns' => 2, // Default number of columns (changed to 2)
             'fullwidth' => 'yes', // Default to full width
         ),
         $atts,
@@ -244,15 +234,12 @@ function etsy_shop_all_shortcode($atts)
     $listings = etsy_get_listings();
 
     if (!empty($listings)) {
-        // Start grid shortcode - pass the columns parameter from best_sellers
+        // Start grid shortcode - pass the columns parameter
         $grid_shortcode = '[etsywp_listing_grid columns="' . esc_attr($atts['columns']) . '" fullwidth="' . esc_attr($atts['fullwidth']) . '"]';
-
-        // Use compact mode if we have many columns
-        $use_compact = intval($atts['columns']) > 4 ? 'yes' : 'no';
 
         // Add tile shortcodes for each listing
         foreach ($listings as $listing) {
-            $image_url = !empty($listing['images'][0]['url_fullxfull']) ? $listing['images'][0]['url_fullxfull'] : '';
+            $image_url = !empty($listing['images'][0]['url_170x135']) ? $listing['images'][0]['url_170x135'] : '';
             $price = '';
             $currency = 'USD';
 
@@ -262,12 +249,12 @@ function etsy_shop_all_shortcode($atts)
             }
 
             $grid_shortcode .= '[etsywp_listing_tile ';
+            $grid_shortcode .= 'listing_id="' . esc_attr($listing['listing_id']) . '" ';
             $grid_shortcode .= 'title="' . esc_attr($listing['title']) . '" ';
             $grid_shortcode .= 'url="' . esc_url($listing['url']) . '" ';
             $grid_shortcode .= 'price="' . esc_attr($price) . '" ';
             $grid_shortcode .= 'currency="' . esc_attr($currency) . '" ';
             $grid_shortcode .= 'image_url="' . esc_url($image_url) . '" ';
-            $grid_shortcode .= 'compact="' . $use_compact . '" ';
             $grid_shortcode .= ']';
         }
 
