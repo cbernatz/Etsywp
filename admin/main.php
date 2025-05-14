@@ -404,6 +404,7 @@ EOD;
         'post_status' => 'publish',
         'post_type' => 'page',
         'post_content' => $content,
+        'post_name' => "{$listing['listing_id']}/{$listing['title']}"
     );
 
     $post_id = wp_insert_post($args);
@@ -411,7 +412,7 @@ EOD;
     if(!is_wp_error($post_id)){
       //the post is valid
     }else{
-      //there was an error in the post insertion, 
+      //there was an error in the post insertion,
       echo $post_id->get_error_message();
     }
 }
