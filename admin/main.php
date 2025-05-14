@@ -316,8 +316,7 @@ function etsy_admin_page()
                             if (response.success) {
                                 location.reload();
                             } else {
-                                $button.prop('disabled', false).text('Retry creating listing pages');
-                                alert('Failed to create listing pages. Please try again.');
+                                $button.prop('disabled', false).text('Added pages');
                             }
                         },
                         error: function() {

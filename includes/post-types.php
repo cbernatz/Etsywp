@@ -170,8 +170,8 @@ function etsy_save_listing($listing) {
     
     // Save main image as featured image
     if (!empty($listing['images']) && !empty($listing['images'][0]['url_fullxfull'])) {
-        etsy_set_featured_image_from_url($listing_id, $listing['images'][0]['url_fullxfull'], $listing['title']);
-        
+        //etsy_set_featured_image_from_url($listing_id, $listing['images'][0]['url_fullxfull'], $listing['title']);
+        //
         // Save all images as meta
         $images = array();
         foreach ($listing['images'] as $image) {
