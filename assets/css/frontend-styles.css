@@ -22,6 +22,7 @@
     overflow: hidden;
     background-color: #FFF;
     margin-bottom: 15px;
+    text-decoration: none;
 }
 
 .etsywp-product-card.compact {
@@ -47,28 +48,21 @@
     padding: 12px;
 }
 
-.etsywp-product-card.compact .etsywp-product-details {
-    padding: 8px;
-}
-
 .etsywp-product-details h3 {
-    color: #333;
-    margin-top: 0;
-    margin-bottom: 8px;
     font-size: 15px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
 }
 
 .etsywp-product-card.compact .etsywp-product-details h3 {
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .etsywp-product-price {
-    color: #F1641D;
     font-weight: bold;
-    margin: 8px 0;
+    font-size: 12px;
 }
 
 .etsywp-view-button {
@@ -190,14 +184,13 @@ article .etsywp-grid-container,
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 8px;
     }
-    
-    .etsywp-product-card, 
+
+    .etsywp-product-card,
     .etsywp-product-card.compact {
         margin-bottom: 8px;
     }
-    
     .etsywp-product-image,
     .etsywp-product-card.compact .etsywp-product-image {
         height: 120px;
     }
-} 
+}

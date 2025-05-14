@@ -24,7 +24,7 @@ define('ETSY_PLUGIN_URL', plugin_dir_url(__FILE__));
 function etsy_plugin_init() {
     // Include post types
     require_once ETSY_PLUGIN_DIR . 'includes/post-types.php';
-    
+
     // Include shortcodes
     require_once ETSY_PLUGIN_DIR . 'includes/shortcodes.php';
     
@@ -96,9 +96,21 @@ function etsy_create_shop_all_page() {
             'post_content'  => $page_content,
             'post_status'   => 'publish',
             'post_type'     => 'page',
+            'meta_input'    => [
+                '_hide_from_nav' => true // custom meta for theme logic
+            ],
         );
         wp_insert_post($new_page);
     }
 }
 register_activation_hook(__FILE__, 'etsy_create_best_sellers_page'); 
 register_activation_hook(__FILE__, 'etsy_create_shop_all_page');
+
+add_filter('wp_get_nav_menu_items', function($items) {
+    foreach ($items as $key => $item) {
+        if (get_post_meta($item->object_id, '_hide_from_nav', true)) {
+            unset($items[$key]);
+        }
+    }
+    return $items;
+});
