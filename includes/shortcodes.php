@@ -220,6 +220,71 @@ function etsy_best_sellers_shortcode($atts) {
 }
 
 /**
+ * Shop All shortcode
+ *
+ * @param array $atts Shortcode attributes
+ * @return string Shortcode output
+ */
+
+function etsy_shop_all_shortcode($atts) {
+    // Parse attributes
+    $atts = shortcode_atts(
+        array(
+            'fullwidth' => 'yes', // Default to full width
+        ),
+        $atts,
+        'etsywp_shop_all'
+    );
+
+    // Start output buffer
+    ob_start();
+
+    // Get all listings
+    $listings = etsy_get_listings();
+
+    if (!empty($listings)) {
+        // Start grid shortcode - pass the columns parameter from best_sellers
+        $grid_shortcode = '[etsywp_listing_grid columns="' . esc_attr($atts['columns']) . '" fullwidth="' . esc_attr($atts['fullwidth']) . '"]';
+
+        // Use compact mode if we have many columns
+        $use_compact = intval($atts['columns']) > 4 ? 'yes' : 'no';
+        
+        // Add tile shortcodes for each listing
+        foreach ($listings as $listing) {
+            $image_url = !empty($listing['images'][0]['url_fullxfull']) ? $listing['images'][0]['url_fullxfull'] : '';
+            $price = '';
+            $currency = 'USD';
+            
+            if (isset($listing['price'])) {
+                $price = number_format($listing['price']['amount'] / $listing['price']['divisor'], 2);
+                $currency = $listing['price']['currency_code'];
+            }
+            
+            $grid_shortcode .= '[etsywp_listing_tile ';
+            $grid_shortcode .= 'title="' . esc_attr($listing['title']) . '" ';
+            $grid_shortcode .= 'url="' . esc_url($listing['url']) . '" ';
+            $grid_shortcode .= 'price="' . esc_attr($price) . '" ';
+            $grid_shortcode .= 'currency="' . esc_attr($currency) . '" ';
+            $grid_shortcode .= 'image_url="' . esc_url($image_url) . '" ';
+            $grid_shortcode .= 'compact="' . $use_compact . '" ';
+            $grid_shortcode .= ']';
+        }
+
+        // Close grid shortcode
+        $grid_shortcode .= '[/etsywp_listing_grid]';
+
+        // Process the shortcodes
+        echo do_shortcode($grid_shortcode);
+    } else {
+        echo '<p style="color: #333;">No listings found.</p>';
+    }
+
+    // Return the buffered content
+    return ob_get_clean();  
+}
+
+
+/**
  * Full Width Container shortcode
  * 
  * @param array $atts Shortcode attributes
@@ -273,3 +338,4 @@ add_shortcode('etsywp_listing_tile', 'etsy_listing_tile_shortcode');
 add_shortcode('etsywp_listing_grid', 'etsy_listing_grid_shortcode');
 add_shortcode('etsywp_best_sellers', 'etsy_best_sellers_shortcode');
 add_shortcode('etsywp_fullwidth', 'etsy_fullwidth_container_shortcode'); 
+add_shortcode('etsywp_shop_all', 'etsy_shop_all_shortcode');
