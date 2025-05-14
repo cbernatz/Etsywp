@@ -135,6 +135,7 @@ function etsy_admin_page()
 
                     <div class="etsy-admin-actions">
                         <button type="button" class="button button-primary etsy-button" id="etsy-disconnect-shop">Disconnect Shop</button>
+                        <button type="button" class="button button-primary etsy-button" id="etsy-create-listing-pages">Create listing pages</button>
                     </div>
                 </div>
 
@@ -300,6 +301,31 @@ function etsy_admin_page()
                         }
                     });
                 });
+
+                $('#etsy-create-listing-pages').on('click', function() {
+                    var $button = $(this);
+                    $button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin-right:5px;"></span> Creating...');
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'etsy_create_listing_pages',
+                            security: '<?php echo wp_create_nonce('etsy_create_listing_pages_nonce'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                $button.prop('disabled', false).text('Retry creating listing pages');
+                                alert('Failed to create listing pages. Please try again.');
+                            }
+                        },
+                        error: function() {
+                            $button.prop('disabled', false).text('Retry creating listing pages');
+                            alert('Failed to create listing pages. Please try again.');
+                        },
+                    })
+                })
             });
         </script>
     </div>
@@ -417,3 +443,53 @@ EOD;
     }
 }
 add_action('wp_ajax_etsy_create_listing_page', 'etsy_create_listing_page');
+
+
+function etsy_create_listing_pages()
+{
+    // Verify nonce
+    if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'etsy_create_listing_pages_nonce')) {
+        wp_send_json_error();
+    }
+
+    // Check user permissions
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error();
+    }
+
+    $listings = etsy_get_listings();
+
+    foreach($listings as $listing) {
+        $price = $listing['price']['amount'] / $listing['price']['divisor'];
+        $content = <<<EOD
+<!-- wp:image {"className":"wp-block-image"} -->
+<figure class="wp-block-image"><img src="{$listing['images'][0]['url_fullxfull']}" alt=""/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>{$price} {$listing['price']['currency_code']}</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>{$listing['description']}</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://www.etsy.com/offsite-checkout/cart/add-listing?listing_id={$listing['listing_id']}">Buy on Etsy</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+EOD;
+
+        $args = array(
+            'post_title' => $listing['title'],
+            'post_status' => 'publish',
+            'post_type' => 'page',
+            'post_content' => $content,
+            'post_name' => "{$listing['listing_id']}/{$listing['title']}",
+        );
+
+        $post_id = wp_insert_post($args);
+    }
+}
+add_action('wp_ajax_etsy_create_listing_pages', 'etsy_create_listing_pages');
