@@ -404,7 +404,7 @@ EOD;
         'post_status' => 'publish',
         'post_type' => 'page',
         'post_content' => $content,
-        'post_name' => "{$listing['listing_id']}/{$listing['title']}"
+        'post_name' => "{$listing['listing_id']}/{$listing['title']}",
     );
 
     $post_id = wp_insert_post($args);
