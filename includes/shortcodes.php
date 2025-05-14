@@ -69,7 +69,7 @@ function etsy_listing_tile_shortcode($atts)
         <a class="<?php echo esc_attr($card_class); ?>" href="/<?php echo $atts['listing_id'] ?>">
             <?php if (!empty($atts['image_url'])) : ?>
                 <div class="etsywp-product-image">
-                    <img src="<?php echo esc_url($atts['image_url']); ?>" alt="<?php echo esc_attr($atts['title']); ?>">
+                    <img class="image-fit-cover" src="<?php echo esc_url($atts['image_url']); ?>" alt="<?php echo esc_attr($atts['title']); ?>">
                 </div>
             <?php endif; ?>
 
@@ -100,7 +100,7 @@ function etsy_listing_grid_shortcode($atts, $content = null)
     // Parse attributes
     $atts = shortcode_atts(
         array(
-            'columns' => 2, // Default number of columns (changed to 2)
+            'columns' => 3, // Default number of columns (changed to 2)
             'fullwidth' => 'no', // Whether to use fullwidth display
         ),
         $atts,
@@ -143,7 +143,7 @@ function etsy_best_sellers_shortcode($atts)
     $atts = shortcode_atts(
         array(
             'limit' => 30, // Changed from 12 to 30 items by default
-            'columns' => 2, // Default number of columns (changed to 2)
+            'columns' => 3, // Default number of columns (changed to 2)
             'fullwidth' => 'yes', // Default to full width
         ),
         $atts,

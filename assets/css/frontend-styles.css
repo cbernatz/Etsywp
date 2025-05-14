@@ -6,7 +6,7 @@
 /* Grid Layout */
 .etsywp-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
     width: 100%;
 }
@@ -93,17 +93,19 @@
     margin-right: auto;
     box-sizing: border-box;
     padding: 0;
+    margin-bottom: 30px;
+    margin-top: 20px;
 }
 
-/* Theme compatibility - constrain to content width */
+/* Theme compatibility - allow full width */
 .entry-content .etsywp-grid-container,
 .wp-block-post-content .etsywp-grid-container,
 .entry .entry-content .etsywp-grid-container,
 .site-main .etsywp-grid-container,
 article .etsywp-grid-container,
 .wp-block-post .etsywp-grid-container {
-    max-width: var(--wp--style--global--content-size, 100%);
-    width: var(--wp--style--global--content-size, 100%);
+    max-width: 100%;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -112,14 +114,14 @@ article .etsywp-grid-container,
 .wp-site-blocks .wp-block-post-content .etsywp-grid-container,
 .is-layout-constrained .etsywp-grid-container,
 .wp-block-group__inner-container .etsywp-grid-container {
-    max-width: var(--wp--style--global--content-size, 100%);
-    width: var(--wp--style--global--content-size, 100%);
+    max-width: 100%;
+    width: 100%;
 }
 
 /* Full Width Container */
 .etsywp-fullwidth-container {
     width: 100%;
-    max-width: var(--wp--style--global--content-size, 100%);
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
@@ -140,14 +142,26 @@ article .etsywp-grid-container,
 .wp-site-blocks .etsywp-fullwidth-container,
 .is-layout-constrained .etsywp-fullwidth-container,
 .wp-block-group__inner-container .etsywp-fullwidth-container {
-    max-width: var(--wp--style--global--content-size, 100%);
+    max-width: 100%;
     width: 100%;
 }
 
 /* Media Queries */
 @media (min-width: 1200px) {
     .etsywp-grid-container {
-        max-width: var(--wp--style--global--content-size, 100%);
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .etsywp-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 992px) {
+    .etsywp-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -168,4 +182,11 @@ article .etsywp-grid-container,
     .etsywp-product-details {
         padding: 12px;
     }
+}
+
+.etsywp-product-image img,
+.image-fit-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
